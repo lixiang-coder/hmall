@@ -1,13 +1,12 @@
-package com.hmall;
+package com.hmall.item;
 
-import com.hmall.item.ItemApplication;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@MapperScan("com.hmall.mapper")
+@MapperScan("com.hmall.item.mapper")
 @SpringBootApplication
-public class HMallApplication {
+public class ItemApplication {
     public static void main(String[] args) {
         SpringApplication.run(ItemApplication.class, args);
     }
