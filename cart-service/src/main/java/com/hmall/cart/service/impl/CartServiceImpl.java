@@ -1,6 +1,7 @@
 package com.hmall.cart.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,6 +17,8 @@ import com.hmall.common.utils.CollUtils;
 import com.hmall.common.utils.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +49,8 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
 
     //@Resource：写成final就不用加@Resource注解，因为@RequiredArgsConstructor已经帮你完成这个构造函数
     private final RestTemplate restTemplate;
+
+    private final DiscoveryClient discoveryClient;
 
     @Override
     public void addItem2Cart(CartFormDTO cartFormDTO) {
@@ -89,10 +94,17 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
         // 1.获取商品id
         Set<Long> itemIds = vos.stream().map(CartVO::getItemId).collect(Collectors.toSet());
         // 2.查询商品
-        //List<ItemDTO> items = itemService.queryItemByIds(itemIds);
-        // 2.1.利用RestTemplate发起http请求，得到http的响应
+        // 2.1 根据服务名称获取服务实例列表
+        List<ServiceInstance> instances = discoveryClient.getInstances("item-service");
+        if (CollUtil.isEmpty(instances)) {
+            // 没有找到实例直接结束
+            return;
+        }
+        // 2.2 手写负载均衡，从实例列表中选取一个实例
+        ServiceInstance instance = instances.get(RandomUtil.randomInt(instances.size()));
+        // 2.3.利用RestTemplate发起http请求，得到http的响应
         ResponseEntity<List<ItemDTO>> response = restTemplate.exchange(
-                "http://localhost:8081/items?ids={ids}",
+                instance.getUri() + "/items?ids={ids}",
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<ItemDTO>>() {
