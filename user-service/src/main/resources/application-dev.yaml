@@ -1,0 +1,5 @@
+hm:
+  db:
+    #host: mysql
+    host: localhost
+    pw: 123456

@@ -1,4 +1,4 @@
-package com.hmall.utils;
+package com.hmall.user.utils;
 
 import cn.hutool.core.exceptions.ValidateException;
 import cn.hutool.jwt.JWT;
@@ -19,7 +19,6 @@ public class JwtTool {
     public JwtTool(KeyPair keyPair) {
         this.jwtSigner = JWTSignerUtil.createSigner("rs256", keyPair);
     }
-
 
     /**
      * 创建 access-token
