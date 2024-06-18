@@ -5,6 +5,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmall.cart.client.ItemClient;
 import com.hmall.cart.domain.dto.CartFormDTO;
 import com.hmall.cart.domain.dto.ItemDTO;
 import com.hmall.cart.domain.po.Cart;
@@ -48,9 +49,11 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
     //private final IItemService itemService;
 
     //@Resource：写成final就不用加@Resource注解，因为@RequiredArgsConstructor已经帮你完成这个构造函数
-    private final RestTemplate restTemplate;
+    //private final RestTemplate restTemplate;
 
-    private final DiscoveryClient discoveryClient;
+    //private final DiscoveryClient discoveryClient;
+
+    private final ItemClient itemClient;
 
     @Override
     public void addItem2Cart(CartFormDTO cartFormDTO) {
@@ -93,8 +96,9 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
     private void handleCartItems(List<CartVO> vos) {
         // 1.获取商品id
         Set<Long> itemIds = vos.stream().map(CartVO::getItemId).collect(Collectors.toSet());
+
         // 2.查询商品
-        // 2.1 根据服务名称获取服务实例列表
+        /*// 2.1 根据服务名称获取服务实例列表
         List<ServiceInstance> instances = discoveryClient.getInstances("item-service");
         if (CollUtil.isEmpty(instances)) {
             // 没有找到实例直接结束
@@ -116,12 +120,16 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements IC
             // 查询失败，直接结束
             return;
         }
-        List<ItemDTO> items = response.getBody();
+        List<ItemDTO> items = response.getBody();*/
+        // 2.1使用FeignClient即可实现远程调用，更加便捷
+        List<ItemDTO> items = itemClient.queryItemByIds(itemIds);
         if (CollUtils.isEmpty(items)) {
             return;
         }
+
         // 3.转为 id 到 item的map
         Map<Long, ItemDTO> itemMap = items.stream().collect(Collectors.toMap(ItemDTO::getId, Function.identity()));
+
         // 4.写入vo
         for (CartVO v : vos) {
             ItemDTO item = itemMap.get(v.getItemId());
