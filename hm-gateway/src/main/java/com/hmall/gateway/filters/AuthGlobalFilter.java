@@ -57,10 +57,14 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return response.setComplete();  // 终止
         }
-        // todo 5.传递用户信息
-        System.out.println("userId = " + userId);
+        // 5.在网关传递用户信息到请求头
+        String userInfo = userId.toString();
+        ServerWebExchange ex = exchange.mutate()
+                .request(b -> b.header("user-info", userInfo))
+                .build();
+
         // 6.放行
-        return chain.filter(exchange);
+        return chain.filter(ex);
     }
 
 
@@ -72,7 +76,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
      */
     private boolean isExclude(String path) {
         for (String pathPattern : authProperties.getExcludePaths()) {
-            if(antPathMatcher.match(pathPattern, path)){
+            if (antPathMatcher.match(pathPattern, path)) {
                 return true;
             }
         }
