@@ -1,8 +1,15 @@
 server:
   port: 8082
+  tomcat:
+    threads:
+      max: 50 # 允许的最大线程数
+    accept-count: 50 # 最大排队等待数量
+    max-connections: 100 # 允许的最大连接
 feign:
   okhttp:
     enabled: true   # 开启OKHttp连接池功能
+  sentinel:
+    enabled: true # 开启feign对sentinel的支持
 hm:
   db:
     database: hm-cart
@@ -13,6 +20,12 @@ hm:
     title: "黑马商城购物车服务接口文档"
     description: "黑马商城购物车服务接口文档"
     package: com.hmall.cart.controller
+spring:
+  cloud:
+    sentinel:
+      transport:
+        dashboard: localhost:8090   # sentinel控制台地址
+      http-method-specify: true # 开启请求方式前缀
 #spring:
 #  application:
 #    name: cart-service # 微服务名称
