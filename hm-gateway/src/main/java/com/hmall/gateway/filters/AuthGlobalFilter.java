@@ -21,6 +21,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@EnableConfigurationProperties(AuthProperties.class)
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     private final AuthProperties authProperties;
